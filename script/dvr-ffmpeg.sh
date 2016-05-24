@@ -2,7 +2,7 @@
 echo Start  `date +"%a %d.%m.%Y %H:%M"`
 StartDate=`date`
 echo '***********************************************************'
-echo 'IP cam records                   ver 0.1 by Skorik (c) 2015'
+echo 'IP cam records                   ver 0.2 by Skorik (c) 2016'
 echo '***********************************************************'
 
 config=$(dirname "$0")/'dvr-config.sh'
@@ -12,6 +12,12 @@ if [ ! -r "$config" ]; then
 	exit 1
 fi
 source $config
+
+DiskFreeinRecFolder=$(DiskFree $recFolder)
+echo -e "DiskFree $DiskFreeinRecFolder bytes $(HumanBytes $DiskFreeinRecFolder)"
+if [ "$DiskFreeinRecFolder"  -lt "$((KeepFreeDisk*1024*1024*1024))" ]; then
+	echo "Too small free space for record. Need at least $KeepFreeDisk GB"
+else
 ffmpeg -i rtsp://192.168.1.31:554/user=admin_password=RZYY1Y7i_channel=1_stream=0.sdp?real_stream \
     -y \
     -r 25 \
@@ -25,4 +31,5 @@ ffmpeg -i rtsp://192.168.1.31:554/user=admin_password=RZYY1Y7i_channel=1_stream=
 	
 
 echo Finish  `date +"%A %d.%m.%Y %H:%M"`
+fi
 exit

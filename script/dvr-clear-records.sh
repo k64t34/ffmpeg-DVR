@@ -3,7 +3,7 @@
 echo Start  `date +"%a %d.%m.%Y %H:%M"`
 StartDate=`date`
 echo '***********************************************************'
-echo 'IP cam records rotations         ver 0.1 by Skorik (c) 2015'
+echo 'IP cam records rotations         ver 0.2 by Skorik (c) 2016'
 echo '***********************************************************'
 
 config=$(dirname "$0")/'dvr-config.sh'
@@ -43,10 +43,11 @@ echo -e "Files $FileMaskDecoder576\t$(printf '%12u' $File576Size) bytes $(HumanB
 
 FilesAll=$(($File1080Size+$File720Size+$File576Size))
 
+DiskFreeinRecFolder=$(DiskFree $recFolder)
 
 echo -e "Disk quota\t$(printf '%12u \n' $DiskQuota)bytes $(HumanBytes $DiskQuota)"
 echo -e "Occupies\t$(printf '%12u \n' $FilesAll)bytes $(HumanBytes $FilesAll)"
-
+echo -e "DiskFree\t$(printf '%12u \n' $DiskFreeinRecFolder)bytes $(HumanBytes $DiskFreeinRecFolder)"
 #
 #** Delete old files
 #
@@ -58,6 +59,7 @@ if (( $FilesAll > $DiskQuota )) ; then
 			FilesAll=$(( $FilesAll - `du -sb $i | awk '{print $1}'` ))
 			echo ${i##*/}
 			#mv $i ${i%.*}.bak
+			mv $i $arcFolder
 			unlink $i		
 			if (( $FilesAll<$DiskQuota )) ; then
 				break
@@ -65,32 +67,35 @@ if (( $FilesAll > $DiskQuota )) ; then
 		done
 	fi	
 fi
-if (( $FilesAll > $DiskQuota )) ; then 
-	if ((File720Size > 0));then
-		echo -e "Overlimit\t$(printf '%12u \n' $(($FilesAll-DiskQuota)))bytes $(HumanBytes $(($FilesAll-DiskQuota)))"
-		echo "Delete old files $FileMaskDecoder720*.mp4"
-		for i in `ls -1 -tr $recFolder/$FileMaskDecoder720*.mp4` ; do			
-			FilesAll=$(($FilesAll - `du -sb $i | awk '{print $1}'`))
-			echo ${i##*/}
-			#mv $i ${i%.*}.bak		
-			unlink $i		
-			if (( $FilesAll<$DiskQuota )) ; then		
-				break
-			fi 
-		done
-	fi
-fi
+#if (( $FilesAll > $DiskQuota )) ; then 
+#	if ((File720Size > 0));then
+#		echo -e "Overlimit\t$(printf '%12u \n' $(($FilesAll-DiskQuota)))bytes $(HumanBytes $(($FilesAll-DiskQuota)))"
+#		echo "Delete old files $FileMaskDecoder720*.mp4"
+#		for i in `ls -1 -tr $recFolder/$FileMaskDecoder720*.mp4` ; do			
+#			FilesAll=$(($FilesAll - `du -sb $i | awk '{print $1}'`))
+#			echo ${i##*/}
+#			#mv $i ${i%.*}.bak		
+#			unlink $i		
+#			if (( $FilesAll<$DiskQuota )) ; then		
+#				break
+#			fi 
+#		done
+#	fi
+#fi
 
-if (( $FilesAll > $DiskQuota )) ; then 
+if (( $FilesAll > $DiskQuota )) || ((DiskFreeinRecFolder < $((KeepFreeDisk*1024*1024*1024)))) ; then 
 	if ((File1080Size > 0));then
 		echo -e "Overlimit\t$(printf '%12u \n' $(($FilesAll-DiskQuota)))bytes $(HumanBytes $(($FilesAll-DiskQuota)))"
 		echo "Delete old files $recPrefix*.mp4"
 		for i in `ls -1 -tr $recFolder/$recPrefix*.mp4` ; do			
 			FilesAll=$(( $FilesAll - `du -sb $i | awk '{print $1}'` ))
 			echo ${i##*/}
+			echo  Move $i to $arcFolder
 			mv $i $arcFolder
-			unlink $i			
-			if (( $FilesAll<$DiskQuota )) ; then		
+			#if FileExists $i
+			unlink $i		
+			#fi	
+			if (( $FilesAll<$DiskQuota )) && ((DiskFreeinRecFolder > $((KeepFreeDisk*1024*1024*1024)))) ; then		
 				break
 			fi 
 		done

@@ -1,7 +1,7 @@
 #!/bin/bash
 #records folder
 recFolder='/media/629fe4c8-2336-41af-bdf6-0aaaceff7300/DVR'
-#recFolder='/media/465ab831-ca09-46b3-bb74-25b6b18a04fa/dvr/'
+#arcFolder='/media/465ab831-ca09-46b3-bb74-25b6b18a04fa/dvr/'
 #disk quota in Gigabytes
 recDiskQuota=100
 #Keep Free Disk Space in Gigabytes
@@ -23,8 +23,11 @@ DaySaveRec720=3
 #ArchiveFolder
 arcFolder='/media/dvr.arc'
 
+bKeepFreeDisk=$((KeepFreeDisk*1024*1024*1024))
+
+
 if [ ! -d "$recFolder" ]; then
-	echo Folder $recFolder not found.
+	echo Folder $arcFolder not found.
 	exit 1
 fi
 #***********************************************************
